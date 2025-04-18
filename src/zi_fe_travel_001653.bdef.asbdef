@@ -1,0 +1,107 @@
+managed;
+strict ( 2 );
+with draft;
+define behavior for ZI_FE_TRAVEL_001653 alias Travel
+implementation in class ZFE_BP_R_TravelTP_001653 unique
+persistent table ZFE_ATRAV_001653
+draft table ZFE_DTRAV_001653
+etag master LocalLastChangedAt
+lock master total etag LastChangedAt
+authorization master( global )
+
+{
+  field ( readonly )
+   TravelUUID,
+   TravelID,
+   LastChangedAt,
+   LocalLastChangedAt;
+
+  field ( numbering : managed )
+   TravelUUID;
+
+
+  create;
+  update;
+  delete;
+
+  draft action Edit;
+  draft action Activate;
+  draft action Discard;
+  draft action Resume;
+  draft determine action Prepare;
+
+  internal action reCalcTotalPrice;
+
+  field ( readonly ) TotalPrice;
+  determination calculateTotalPrice on modify { create; field BookingFee, CurrencyCode; }
+
+  mapping for ZFE_ATRAV_001653
+  {
+    TravelUUID = TRAVEL_UUID;
+    TravelID = TRAVEL_ID;
+    AgencyID = AGENCY_ID;
+    CustomerID = CUSTOMER_ID;
+    BeginDate = BEGIN_DATE;
+    EndDate = END_DATE;
+    BookingFee = BOOKING_FEE;
+    TotalPrice = TOTAL_PRICE;
+    CurrencyCode = CURRENCY_CODE;
+    Description = DESCRIPTION;
+    OverallStatus = OVERALL_STATUS;
+    CreatedBy = CREATED_BY;
+    CreatedAt = CREATED_AT;
+    LastChangedBy = LAST_CHANGED_BY;
+    LastChangedAt = LAST_CHANGED_AT;
+    LocalLastChangedAt = LOCAL_LAST_CHANGED_AT;
+  }
+
+  association _Booking { create; with draft; }
+
+  determination CalculateTravelID on save { create; }
+}
+
+define behavior for ZI_FE_BOOKING_001653 alias Booking
+implementation in class ZFE_BP_R_BookingTP_001653 unique
+persistent table ZFE_ABOOK_001653
+draft table ZFE_DBOOK_001653
+etag master LocalLastChangedAt
+lock dependent by _Travel
+authorization dependent by _Travel
+
+{
+  field ( readonly )
+   BookingUUID,
+   TravelUUID,
+   BookingID,
+   LocalLastChangedAt;
+
+  field ( numbering : managed )
+   BookingUUID;
+
+
+  update;
+  delete;
+
+  determination calculateTotalPrice on modify { create; field FlightPrice, CurrencyCode; }
+
+  mapping for ZFE_ABOOK_001653
+  {
+    BookingUUID = BOOKING_UUID;
+    TravelUUID = TRAVEL_UUID;
+    BookingID = BOOKING_ID;
+    BookingDate = BOOKING_DATE;
+    CustomerID = CUSTOMER_ID;
+    CarrierID = CARRIER_ID;
+    ConnectionID = CONNECTION_ID;
+    FlightDate = FLIGHT_DATE;
+    FlightPrice = FLIGHT_PRICE;
+    CurrencyCode = CURRENCY_CODE;
+    CreatedBy = CREATED_BY;
+    LastChangedBy = LAST_CHANGED_BY;
+    LocalLastChangedAt = LOCAL_LAST_CHANGED_AT;
+  }
+
+  association _Travel { with draft; }
+
+  determination CalculateBookingID on save { create; }
+}
